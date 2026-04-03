@@ -33,12 +33,14 @@ def main() -> None:
                 defaults={"description": guild_data.get("description")},
             )
 
-        # PLAYER (🔥 correção principal aqui)
+        # PLAYER
+        nickname = player_data.get("nickname") or player_data.get("name")
+
         Player.objects.get_or_create(
-            nickname=player_data.get("nickname") or player_data.get("name"),
+            nickname=nickname,
             defaults={
-                "email": player_data.get("email", ""),
-                "bio": player_data.get("bio", ""),
+                "email": player_data["email"],
+                "bio": player_data["bio"],
                 "race": race,
                 "guild": guild,
             },
