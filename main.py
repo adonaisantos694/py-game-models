@@ -34,13 +34,17 @@ def main() -> None:
             )
 
         # PLAYER
-        nickname = player_data.get("nickname") or player_data.get("name")
+        nickname = (
+            player_data.get("nickname")
+            or player_data.get("name")
+            or player_data.get("email")
+        )
 
         Player.objects.get_or_create(
             nickname=nickname,
             defaults={
-                "email": player_data["email"],
-                "bio": player_data["bio"],
+                "email": player_data.get("email", ""),
+                "bio": player_data.get("bio", ""),
                 "race": race,
                 "guild": guild,
             },
