@@ -1,63 +1,25 @@
 import json
-from db.models import Race, Skill, Guild, Player
+from db.models import Player, Race, Guild
 
 
-def main() -> None:
-    with open("players.json", "r", encoding="utf-8") as file:
-        players_data = json.load(file)
+def main():
+    with open("players.json") as f:
+        players_data = json.load(f)
 
-    unknown_count = 0
+    for data in players_data:
+        nickname = data.get("nickname") or "UnknownPlayer"
+        email = data.get("email")
+        bio = data.get("bio")
+        race_name = data.get("race")
+        guild_name = data.get("guild")
 
-    for player_data in players_data.values():
-        # --- RACE ---
-        race_data = player_data.get("race", {})
-        race_name = race_data.get("name", "")
-        race_description = race_data.get("description", "")
-        race, _ = Race.objects.get_or_create(
-            name=race_name,
-            defaults={"description": race_description},
-        )
+        race = Race.objects.get(name=race_name) if race_name else None
+        guild = Guild.objects.get(name=guild_name) if guild_name else None
 
-        # --- SKILLS ---
-        for skill_data in race_data.get("skills", []):
-            skill_name = skill_data.get("name", "")
-            Skill.objects.get_or_create(
-                name=skill_name,
-                defaults={
-                    "bonus": skill_data.get("bonus", 0),
-                    "race": race,
-                },
-            )
-
-        # --- GUILD ---
-        guild_data = player_data.get("guild")
-        guild = None
-        if guild_data:
-            guild_name = guild_data.get("name", "")
-            guild_description = guild_data.get("description", "")
-            guild, _ = Guild.objects.get_or_create(
-                name=guild_name,
-                defaults={"description": guild_description},
-            )
-
-        # --- PLAYER ---
-        nickname = player_data.get("nickname")
-        if not nickname:
-            nickname = player_data.get("name")
-        if not nickname:
-            unknown_count += 1
-            nickname = f"UnknownPlayer{unknown_count}"
-
-        Player.objects.get_or_create(
+        Player.objects.create(
             nickname=nickname,
-            defaults={
-                "email": player_data.get("email", ""),
-                "bio": player_data.get("bio", ""),
-                "race": race,
-                "guild": guild,
-            },
+            email=email,
+            bio=bio,
+            race=race,
+            guild=guild
         )
-
-
-if __name__ == "__main__":
-    main()
