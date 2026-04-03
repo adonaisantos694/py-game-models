@@ -1,55 +1,53 @@
+from db.models import Race, Skill, Guild, Player
 import json
-from db.models import Race, Skill, Player, Guild
+import os
+
+JSON_FILE = os.path.join(os.path.dirname(__file__), "players.json")
 
 
-def main() -> None:
-    with open("players.json") as f:
+def main():
+    with open(JSON_FILE, "r", encoding="utf-8") as f:
         players_data = json.load(f)
 
-    for nickname, data in players_data.items():
-        email = data.get("email")
-        bio = data.get("bio")
-
-        # Race (verifica se existe antes)
-        race_data = data.get("race")
+    for player in players_data:
+        # Processar raça
+        race_data = player.get("race")
         race_obj = None
         if race_data:
             race_name = race_data.get("name")
-            race_desc = race_data.get("description")
-            race_obj, _ = Race.objects.get_or_create(
-                name=race_name, defaults={"description": race_desc}
-            )
+            if race_name:
+                race_obj, _ = Race.objects.get_or_create(name=race_name)
 
-            # Skills (nome único globalmente)
-            for skill_data in race_data.get("skills", []):
-                skill_name = skill_data.get("name")
-                skill_bonus = skill_data.get("bonus")
-                # Se a skill já existe, não cria duplicado
-                skill_obj, _ = Skill.objects.get_or_create(
-                    name=skill_name,
-                    defaults={"bonus": skill_bonus}
-                )
-                # Associar skill à raça se ainda não estiver associada
-                if race_obj not in skill_obj.race_set.all():
-                    skill_obj.race_set.add(race_obj)
+                # Criar skills da raça
+                for skill_data in race_data.get("skills", []):
+                    skill_name = skill_data.get("name")
+                    skill_bonus = skill_data.get("bonus")
+                    if skill_name:
+                        Skill.objects.get_or_create(
+                            name=skill_name,
+                            defaults={"bonus": skill_bonus, "race": race_obj}
+                        )
 
-        # Guild (verifica se existe)
-        guild_data = data.get("guild")
+        # Processar guild
+        guild_data = player.get("guild")
         guild_obj = None
         if guild_data:
             guild_name = guild_data.get("name")
-            guild_desc = guild_data.get("description")
-            guild_obj, _ = Guild.objects.get_or_create(
-                name=guild_name, defaults={"description": guild_desc}
-            )
+            if guild_name:
+                guild_obj, _ = Guild.objects.get_or_create(name=guild_name)
 
-        # Player
+        # Criar player
+        player_name = player.get("name")
+        if not player_name:
+            continue
         Player.objects.get_or_create(
-            nickname=nickname,
+            name=player_name,
             defaults={
-                "email": email,
-                "bio": bio,
                 "race": race_obj,
-                "guild": guild_obj,
-            },
+                "guild": guild_obj
+            }
         )
+
+
+if __name__ == "__main__":
+    main()
