@@ -8,18 +8,18 @@ def main() -> None:
 
     for player_data in players_data.values():
         # RACE
-        race_data = player_data["race"]
+        race_data = player_data.get("race", {})
         race, _ = Race.objects.get_or_create(
-            name=race_data["name"],
+            name=race_data.get("name", ""),
             defaults={"description": race_data.get("description", "")},
         )
 
         # SKILLS
         for skill_data in race_data.get("skills", []):
             Skill.objects.get_or_create(
-                name=skill_data["name"],
+                name=skill_data.get("name", ""),
                 defaults={
-                    "bonus": skill_data["bonus"],
+                    "bonus": skill_data.get("bonus", 0),
                     "race": race,
                 },
             )
@@ -29,16 +29,12 @@ def main() -> None:
         guild_data = player_data.get("guild")
         if guild_data:
             guild, _ = Guild.objects.get_or_create(
-                name=guild_data["name"],
-                defaults={"description": guild_data.get("description")},
+                name=guild_data.get("name", ""),
+                defaults={"description": guild_data.get("description", "")},
             )
 
         # PLAYER
-        nickname = (
-            player_data.get("nickname")
-            or player_data.get("name")
-            or player_data.get("email")
-        )
+        nickname = player_data.get("nickname") or player_data.get("name")
 
         Player.objects.get_or_create(
             nickname=nickname,
