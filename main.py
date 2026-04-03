@@ -6,14 +6,13 @@ def main() -> None:
     with open("players.json", "r", encoding="utf-8") as file:
         players_data = json.load(file)
 
-    unknown_count = 0  # contador para players sem nickname ou name
+    unknown_count = 0
 
     for player_data in players_data.values():
         # --- RACE ---
         race_data = player_data.get("race", {})
         race_name = race_data.get("name", "")
         race_description = race_data.get("description", "")
-
         race, _ = Race.objects.get_or_create(
             name=race_name,
             defaults={"description": race_description},
@@ -42,7 +41,9 @@ def main() -> None:
             )
 
         # --- PLAYER ---
-        nickname = player_data.get("nickname") or player_data.get("name")
+        nickname = player_data.get("nickname")
+        if not nickname:
+            nickname = player_data.get("name")
         if not nickname:
             unknown_count += 1
             nickname = f"UnknownPlayer{unknown_count}"
