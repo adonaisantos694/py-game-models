@@ -5,7 +5,7 @@ import os
 JSON_FILE = os.path.join(os.path.dirname(__file__), "players.json")
 
 
-def main():
+def main() -> None:
     with open(JSON_FILE, "r", encoding="utf-8") as f:
         players_data = json.load(f)
 
